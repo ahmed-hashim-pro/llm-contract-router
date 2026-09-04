@@ -1,7 +1,7 @@
 {
   "name": "llm-contract-router",
   "version": "0.1.0",
-  "description": "Route across LLM providers behind one interface, adapting each request to the target model's capability tier and validating the result against your schema \u2014 so falling back to a cheaper model degrades predictably instead of breaking the caller.",
+  "description": "Route across LLM providers behind one interface, adapting each request to the target model's capability tier and validating the result against your schema — so falling back to a cheaper model degrades predictably instead of breaking the caller.",
   "license": "MIT",
   "author": "Ahmed Hashim",
   "repository": {
@@ -79,6 +79,7 @@
     "openai": "7.10.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.69.0",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "zod": "4.5.4"
   }
 }
