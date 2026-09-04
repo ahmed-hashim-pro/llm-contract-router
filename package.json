@@ -1,0 +1,84 @@
+{
+  "name": "llm-contract-router",
+  "version": "0.1.0",
+  "description": "Route across LLM providers behind one interface, adapting each request to the target model's capability tier and validating the result against your schema \u2014 so falling back to a cheaper model degrades predictably instead of breaking the caller.",
+  "license": "MIT",
+  "author": "Ahmed Hashim",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahmed-hashim-pro/llm-contract-router.git"
+  },
+  "homepage": "https://github.com/ahmed-hashim-pro/llm-contract-router#readme",
+  "keywords": [
+    "llm",
+    "router",
+    "fallback",
+    "anthropic",
+    "claude",
+    "openai",
+    "structured-output",
+    "json-schema",
+    "byok",
+    "resilience"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./anthropic": {
+      "types": "./dist/providers/anthropic.d.ts",
+      "default": "./dist/providers/anthropic.js"
+    },
+    "./openai": {
+      "types": "./dist/providers/openai.d.ts",
+      "default": "./dist/providers/openai.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "check": "npm run build && npm run typecheck && npm run lint && npm run test",
+    "example": "npm run build && node --experimental-strip-types examples/degrade.ts"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.60.0",
+    "openai": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "0.123.0",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.10.1",
+    "@vitest/coverage-v8": "5.0.0",
+    "eslint": "10.9.1",
+    "openai": "7.10.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.69.0",
+    "vitest": "5.0.0"
+  }
+}
