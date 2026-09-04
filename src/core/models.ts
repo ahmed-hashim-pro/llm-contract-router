@@ -24,17 +24,16 @@ export interface Pricing {
  * about capability that ages much more slowly, so that is what ships.
  *
  * Supply pricing from your provider's current page with {@link withPricing}.
+ *
+ * Only models whose ids are verified are listed. Reach for {@link defineModel}
+ * for anything else — a guessed id fails at request time with a provider error
+ * that looks like an outage, which is a worse trade than typing it yourself.
  */
 export const models = {
   anthropic: {
     opus5: { id: "claude-opus-5", provider: "anthropic", tier: "frontier" },
     sonnet5: { id: "claude-sonnet-5", provider: "anthropic", tier: "balanced" },
     haiku45: { id: "claude-haiku-4-5-20251001", provider: "anthropic", tier: "compact" },
-  },
-  openai: {
-    // Identities only; add whichever you actually use.
-    gpt5: { id: "gpt-5", provider: "openai", tier: "frontier" },
-    gpt5mini: { id: "gpt-5-mini", provider: "openai", tier: "compact" },
   },
 } as const satisfies Record<string, Record<string, ModelIdentity>>;
 
