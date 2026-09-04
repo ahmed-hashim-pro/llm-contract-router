@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22.x", "24.x"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      # ci, not install: it installs exactly what package-lock.json pins and
+      # fails if the lockfile and package.json disagree.
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # No ANTHROPIC_API_KEY or OPENAI_API_KEY is set anywhere in this workflow.
+      # The suite passing here is the proof that every provider is mocked.
+      - name: Test
+        run: npm run test
+
+      - name: Coverage
+        run: npm run coverage
+
+      # The README's example, run verbatim. It uses mock providers, so it must
+      # produce a degraded-but-valid answer with no credentials at all.
+      - name: Example runs with no credentials
+        run: npm run example
