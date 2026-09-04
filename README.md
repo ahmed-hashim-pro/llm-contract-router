@@ -215,9 +215,14 @@ SDKs, declared as *optional* peer dependencies behind subpath exports, so
 installing this package pulls nothing and you add only the vendor you use:
 
 ```bash
-npm i llm-contract-router
+npm i llm-contract-router      # installs exactly one package
 npm i @anthropic-ai/sdk        # only if you import llm-contract-router/anthropic
 ```
+
+Importing an adapter whose SDK is missing fails at import time with
+`Cannot find package '@anthropic-ai/sdk'` — it names what to install rather than
+failing later at request time. `llm-contract-router` and
+`llm-contract-router/testing` need nothing.
 
 Not even zod is a dependency — `Contract` is structural, which also means zod 3
 and zod 4 both work despite not being source compatible.
