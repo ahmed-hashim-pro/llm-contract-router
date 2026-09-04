@@ -252,3 +252,51 @@ describe("configuration", () => {
     expect(result.ok).toBe(false);
   });
 });
+
+describe("degraded and repairs are separate signals", () => {
+  it("is not degraded when the primary answers, even after a repair", async () => {
+    const router = createRouter({
+      providers: { mock: createMockProvider("mock", [{ text: INVALID }, { text: VALID }]) },
+      chain: [model("primary", "frontier"), model("backup", "compact")],
+    });
+
+    const result = await router.complete(ask);
+
+    expect(result.ok).toBe(true);
+    // The primary served it. It needed help, and `repairs` is where that is
+    // reported — `degraded` answers "which model", not "how well did it go".
+    expect(result.meta.servedBy).toBe("primary");
+    expect(result.meta.degraded).toBe(false);
+    expect(result.meta.repairs).toBe(1);
+  });
+
+  it("is degraded when a later model answers on its first try", async () => {
+    const router = createRouter({
+      providers: {
+        a: createMockProvider("a", [{ fail: "rate_limit" }]),
+        b: createMockProvider("b", [{ text: VALID }]),
+      },
+      chain: [model("primary", "frontier", "a"), model("backup", "compact", "b")],
+    });
+
+    const result = await router.complete(ask);
+
+    expect(result.meta.degraded).toBe(true);
+    expect(result.meta.repairs).toBe(0);
+  });
+
+  it("reports both when a later model also needed a repair", async () => {
+    const router = createRouter({
+      providers: {
+        a: createMockProvider("a", [{ fail: "unavailable" }]),
+        b: createMockProvider("b", [{ text: INVALID }, { text: VALID }]),
+      },
+      chain: [model("primary", "frontier", "a"), model("backup", "compact", "b")],
+    });
+
+    const result = await router.complete(ask);
+
+    expect(result.meta.degraded).toBe(true);
+    expect(result.meta.repairs).toBe(1);
+  });
+});

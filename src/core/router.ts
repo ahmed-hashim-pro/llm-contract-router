@@ -42,10 +42,11 @@ export function createRouter(config: RouterConfig): Router {
     async complete<T>(options: CompleteOptions<T>): Promise<RouteResult<T>> {
       const startedAt = Date.now();
       const attempts: Attempt[] = [];
+      const primaryId = config.chain[0]?.id;
 
       const configError = validate(config);
       if (configError !== null) {
-        return { ok: false, error: configError, meta: summarise(attempts, startedAt, undefined) };
+        return { ok: false, error: configError, meta: summarise(attempts, startedAt, undefined, primaryId) };
       }
 
       for (const model of config.chain) {
@@ -69,7 +70,7 @@ export function createRouter(config: RouterConfig): Router {
                 kind: "budget_exceeded",
                 message: `stopped after $${totalCost(attempts).toFixed(6)}, which reached the $${config.maxCostUsd?.toFixed(6)} budget`,
               },
-              meta: summarise(attempts, startedAt, undefined),
+              meta: summarise(attempts, startedAt, undefined, primaryId),
             };
           }
 
@@ -112,7 +113,7 @@ export function createRouter(config: RouterConfig): Router {
             return {
               ok: true,
               data: value.value,
-              meta: summarise(attempts, startedAt, model),
+              meta: summarise(attempts, startedAt, model, primaryId),
             };
           }
 
@@ -138,7 +139,7 @@ export function createRouter(config: RouterConfig): Router {
           kind: "chain_exhausted",
           message: `every model in the chain failed (${config.chain.length} tried)`,
         },
-        meta: summarise(attempts, startedAt, undefined),
+        meta: summarise(attempts, startedAt, undefined, primaryId),
       };
     },
   };
@@ -232,13 +233,14 @@ function summarise(
   attempts: readonly Attempt[],
   startedAt: number,
   servedBy: ModelSpec | undefined,
+  primaryId: string | undefined,
 ): RouteMeta {
-  const firstModel = attempts[0]?.model;
   return {
     ...(servedBy ? { servedBy: servedBy.id, tier: servedBy.tier } : {}),
-    // Degraded means the answer did not come from the first choice — either a
-    // later model served it, or the first one needed a repair to comply.
-    degraded: servedBy !== undefined && (attempts.length > 1 || firstModel !== servedBy.id),
+    // Strictly "a model other than the primary served this". Repairs are
+    // reported by `repairs`; a caller wanting "anything non-ideal happened"
+    // checks `degraded || repairs > 0`. Two fields, two signals.
+    degraded: servedBy !== undefined && servedBy.id !== primaryId,
     attempts: [...attempts],
     repairs: attempts.filter((attempt) => attempt.repair > 0).length,
     costUsd: totalCost(attempts),
