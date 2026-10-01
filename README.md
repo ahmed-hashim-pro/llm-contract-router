@@ -38,7 +38,7 @@ git clone https://github.com/ahmed-hashim-pro/llm-contract-router.git
 cd llm-contract-router
 
 npm ci
-npm run check     # build, typecheck, lint, 98 tests
+npm run check     # build, typecheck, lint, 105 tests
 npm run example   # the run above
 ```
 
@@ -215,9 +215,13 @@ SDKs, declared as *optional* peer dependencies behind subpath exports, so
 installing this package pulls nothing and you add only the vendor you use:
 
 ```bash
-npm i llm-contract-router      # installs exactly one package
+git clone https://github.com/ahmed-hashim-pro/llm-contract-router.git
+(cd llm-contract-router && npm ci && npm run build && npm pack)
+npm i ./llm-contract-router/llm-contract-router-0.1.0.tgz   # installs exactly one package
 npm i @anthropic-ai/sdk        # only if you import llm-contract-router/anthropic
 ```
+
+It isn't published to npm yet, so the first two lines build it from source and pack it. Installing straight from GitHub (`npm i github:ahmed-hashim-pro/llm-contract-router`) doesn't work: `dist/` isn't committed, so the import fails.
 
 Importing an adapter whose SDK is missing fails at import time with
 `Cannot find package '@anthropic-ai/sdk'` — it names what to install rather than
@@ -242,7 +246,7 @@ and zod 4 both work despite not being source compatible.
 
 ## Tests
 
-98 tests. No API keys, no network, nothing to sign up for.
+105 tests. No API keys, no network, nothing to sign up for.
 
 ```bash
 npm run check
