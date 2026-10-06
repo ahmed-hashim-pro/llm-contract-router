@@ -15,7 +15,9 @@ export interface RouterConfig {
   /** Repair attempts allowed per model after a contract failure. Default 1. */
   readonly repairsPerModel?: number;
   /**
-   * Abort rather than start an attempt that could push spend past this.
+   * A soft ceiling: before each attempt, stop if spend has already reached
+   * this. An attempt that has started is never cut short, so the attempt that
+   * crosses the line is still counted and the final cost can exceed it.
    * Cost accumulates across repairs and abandoned models, so a degraded path
    * can otherwise cost more than the primary would have.
    */

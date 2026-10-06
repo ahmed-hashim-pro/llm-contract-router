@@ -192,7 +192,7 @@ describe("the contract", () => {
 });
 
 describe("cost control", () => {
-  it("stops rather than spending past the budget", async () => {
+  it("stops starting attempts once spend reaches the budget, even if the last one overshot it", async () => {
     const router = createRouter({
       providers: {
         a: createMockProvider("a", [{ text: INVALID, usage: { inputTokens: 1_000_000, outputTokens: 0 } }]),
@@ -209,6 +209,8 @@ describe("cost control", () => {
     // the first attempt alone costs $5, so no repair and no fallback is tried
     expect(result.error.kind).toBe("budget_exceeded");
     expect(result.meta.attempts).toHaveLength(1);
+    // a soft ceiling: the attempt that crossed it is still counted
+    expect(result.meta.costUsd).toBeGreaterThan(1);
   });
 
   it("counts every attempt, so a degraded path can cost more than the primary", async () => {

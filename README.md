@@ -10,7 +10,8 @@ weaker model returns prose where JSON was asked for, or drops a required field,
 and the failure surfaces in your application rather than in the router. This
 library adapts each request to the target model's capability tier, validates the
 answer against your schema, and gives the model one chance to fix it before
-moving on — so a degraded answer is cheaper and slower, never malformed.
+moving on. A degraded answer is slower and can cost more than the primary would
+have, but it is never malformed.
 
 ```
 $ npm run example
@@ -124,20 +125,25 @@ createRouter({ ..., calibration: { compact: { temperature: 0.3 } } })
 
 You supply anything with a `safeParse` — zod 3, zod 4, valibot, or a hand-written
 function. On a validation failure the model is told **exactly which constraints
-it broke**, then asked once more:
+it broke**, then asked once more. This is the repair prompt the example above
+sends to the backup, read back from the mock's `provider.calls`:
 
-```
+````
+Classify the sentiment of: 'the food was genuinely wonderful'
+
 Your previous answer did not satisfy the schema.
 
 You produced:
+Sure! ```json
 {"sentiment":"elated","score":7}
+```
 
 These constraints were not met:
 - sentiment: must be positive, negative or neutral
 - score: must be a number between 0 and 1
 
 Return corrected JSON only.
-```
+````
 
 Asking again without that just re-rolls the same mistake. If the repair also
 fails, the router moves to the next model rather than spending more on one that
@@ -159,6 +165,12 @@ If a ceiling matters more than an answer, set one:
 ```ts
 createRouter({ ..., maxCostUsd: 0.05 })   // -> error.kind === "budget_exceeded"
 ```
+
+It is a soft ceiling. The router checks spend before each attempt and stops
+once the total has reached `maxCostUsd`, but an attempt it has already started
+runs to completion and is counted, so the final `costUsd` can land above the
+budget. Run against the example's mocks with `maxCostUsd: 0.0005`, the request
+still succeeds and reports $0.000700.
 
 ### Prices are not shipped
 
@@ -221,7 +233,10 @@ npm i ./llm-contract-router/llm-contract-router-0.1.0.tgz   # installs exactly o
 npm i @anthropic-ai/sdk        # only if you import llm-contract-router/anthropic
 ```
 
-It isn't published to npm yet, so the first two lines build it from source and pack it. Installing straight from GitHub (`npm i github:ahmed-hashim-pro/llm-contract-router`) doesn't work: `dist/` isn't committed, so the import fails.
+It is not published to npm, so `npm i llm-contract-router` returns a 404. The
+first two lines build it from source and pack it. Installing straight from
+GitHub (`npm i github:ahmed-hashim-pro/llm-contract-router`) does not work
+either: `dist/` is not committed, so the import fails.
 
 Importing an adapter whose SDK is missing fails at import time with
 `Cannot find package '@anthropic-ai/sdk'` — it names what to install rather than
